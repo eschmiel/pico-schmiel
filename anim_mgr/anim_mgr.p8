@@ -1,88 +1,33 @@
 pico-8 cartridge // http://www.pico-8.com
 version 42
 __lua__
-#include anim_mgr.p8
-
-function _init()
-	local opt={
-		st='idle',
-		anims={
-			idle={
-				{2,10},
-				{3,5}
-			},
-			walk={
-				{4,3},
-				{5,1},
-				{6,1}, 
-				{7,1},
-				{8,3}
-			},
-			eldritch_walk={
-				{0,3},
-				{1,3},
-				{16,3},
-				{17,3},
-				{32,3},
-				{33,3}
-			}
-		},
-	}
-
-	mgr=mk_anim_mgr(opt)
-	menu=mk_menu()
-end
-
-function _update()
-	mgr:update()
-	menu:update()
-end
-
-function _draw()
-	cls()
-	spr(mgr:cur_spr(),60,40)
-	draw_anim_st_str()
-	menu:draw(40,80)
-end
-
-function draw_anim_st_str()
-	local str="animation state: "
-	str=str..mgr.st
-	print(str,4,70,6)
-end
--->8
-function mk_menu()
-	local menu={
-	 opt={'idle','walk','eldritch_walk'},
-	 sel=1
+function mk_anim_mgr(opt)
+	local mgr={
+		st=opt.st,
+		anims=opt.anims,
+		cf=1,
+		t=0,
 	}
 	
-	menu.update=function(s)
-		if(btnp(⬇️))then
-			s.sel+=1
-			if(s.sel>#s.opt)s.sel=1
-		end
-		if(btnp(⬆️))then
-			s.sel-=1
-			if(s.sel<1)s.sel=#s.opt
-		end
-		if(btnp(🅾️))then
-			mgr.st=s.opt[s.sel]
-			mgr.cf=1
-			mgr.t=1
-		end
+	mgr.cur_anim=function(s)
+	 return	s.anims[s.st]
 	end
 	
-	menu.draw=function(s,x,y)
-		rect(x,y,x+68,y+44,13)
-		for i,o in ipairs(s.opt) do
-			local c=5
-			if(i==s.sel)c=7
-			print(o,x+10,y+(10*i),c)
-		end
+	mgr.cur_spr=function(s)
+		return s:cur_anim()[s.cf][1]
 	end
 	
-	return menu
+	mgr.update=function(s)
+		s.t+=1
+		local anim=s:cur_anim()
+		if(s.t>anim[s.cf][2])then
+			s.t=0
+			s.cf+=1
+		end
+		if(s.cf>#anim)s.cf=1
+	end
+	
+	return mgr
 end
 __gfx__
 07777000077770000077770000000000007777000077770000777700000000000000000000000000000000000000000000000000000000000000000000000000
